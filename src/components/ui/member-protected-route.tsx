@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
-import { useMember } from '@/integrations';
-import { SignIn } from '@/components/ui/sign-in';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+ import { SignIn } from '../../components/ui/sign-in';
+import { LoadingSpinner } from '../../components/ui/loading-spinner';
 
 interface SignInProps {
   title?: string;
@@ -72,3 +71,7 @@ export function MemberProtectedRoute({
 
   return <>{children}</>;
 }
+function useMember(): { isAuthenticated: any; isLoading: any; } {
+  throw new Error('Function not implemented.');
+}
+

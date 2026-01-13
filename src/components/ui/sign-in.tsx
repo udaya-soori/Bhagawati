@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useMember } from '@/integrations';
-
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+ 
 interface SignInProps {
   title?: string;
   message?: string;
@@ -37,3 +36,7 @@ export function SignIn({
     </div>
   );
 }
+function useMember(): { actions: any; } {
+  throw new Error('Function not implemented.');
+}
+

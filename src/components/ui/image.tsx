@@ -1,111 +1,165 @@
-import { type FittingType, getPlaceholder, type ImageTransformOptions, sdk, STATIC_MEDIA_URL } from '@wix/image-kit'
-import { forwardRef, type ImgHTMLAttributes, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { useSize } from '../../hooks/use-size'
-import './image.css'
+import { forwardRef, type ImgHTMLAttributes, useState, CSSProperties } from 'react';
 
 const FALLBACK_IMAGE_URL = "https://static.wixstatic.com/media/12d367_4f26ccd17f8f4e3a8958306ea08c2332~mv2.png";
 
-type ImageData = {
-  id: string
-  width: number
-  height: number
-  focalPoint?: {
-    x: number
-    y: number
-  }
-}
-
-const getImageData = (url: string, imageProps: ImageProps): ImageData | undefined => {
-  // wix:image://v1/${uri}/${filename}#originWidth=${width}&originHeight=${height}
-  const wixImagePrefix = 'wix:image://v1/'
-  if (url.startsWith(wixImagePrefix)) {
-    const uri = url.replace(wixImagePrefix, '').split('#')[0].split('/')[0]
-
-    const params = new URLSearchParams(url.split('#')[1] || '')
-    const width = parseInt(params.get('originWidth') || '0', 10)
-    const height = parseInt(params.get('originHeight') || '0', 10)
-
-    return { id: uri, width, height }
-  } else if (url.startsWith(STATIC_MEDIA_URL)) {
-    const { pathname, searchParams } = new URL(url)
-    const originWidth = imageProps.originWidth || parseInt(searchParams.get('originWidth') || '0', 10)
-    const originHeight = imageProps.originHeight || parseInt(searchParams.get('originHeight') || '0', 10)
-    if (originWidth && originHeight) {
-      const uri = pathname.split('/').slice(2).join('/')
-      const focalPoint = typeof imageProps.focalPointX === 'number' && typeof imageProps.focalPointY === 'number' ? {
-        x: imageProps.focalPointX,
-        y: imageProps.focalPointY
-      } : undefined
-
-      return {
-        id: uri,
-        width: originWidth,
-        height: originHeight,
-        focalPoint
-      }
-    }
-  }
-}
-
 export type ImageProps = ImgHTMLAttributes<HTMLImageElement> & {
-  fittingType?: FittingType
-  originWidth?: number
-  originHeight?: number
-  focalPointX?: number
-  focalPointY?: number
+  lazy?: boolean;
+  aspectRatio?: string;
+  skeleton?: boolean;
+  placeholder?: string;
 }
 
-type WixImageProps = Omit<ImageProps, 'src'> & { data: ImageData }
-const WixImage = forwardRef<HTMLImageElement, WixImageProps>(
-  ({ data, fittingType = 'fill', ...imgProps }, parentRef) => {
-    const ref = useRef<HTMLImageElement | null>(null)
-    const size = useSize(ref)
-    const { width, height, focalPoint } = data
+export const Image = forwardRef<HTMLImageElement, ImageProps>(({
+  src,
+  alt = '',
+  className,
+  lazy = true,
+  aspectRatio,
+  skeleton = false,
+  placeholder,
+  onError,
+  onLoad,
+  style,
+  ...props
+}, ref) => {
+  const [isLoading, setIsLoading] = useState(skeleton);
+  const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-    // Expose the ref to the parent component
-    useImperativeHandle(parentRef, () => ref.current as HTMLImageElement)
-
-    if (!size) {
-      const { uri, ...placeholder } = getPlaceholder(fittingType ?? 'fit', data, { htmlTag: 'img' })
-      // @ts-expect-error placeholder.css.img properties are not typed correctly.
-      return <img ref={ref} src={`${STATIC_MEDIA_URL}${uri}`} style={placeholder.css.img} {...placeholder.attr}  {...imgProps} />
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    setHasError(true);
+    setIsLoading(false);
+    if (onError) {
+      onError(e);
     }
+  };
 
-    const scale = fittingType === 'fit' ? sdk.getScaleToFitImageURL : sdk.getScaleToFillImageURL
-    const targetHeight = size.height || height * (size.width / width) || height
-    const targetWidth = size.width || width * (size.height / height) || width
-    const transformOptions: ImageTransformOptions = focalPoint ? { focalPoint } : undefined
-    const src = scale(data.id, data.width, data.height, targetWidth, targetHeight, transformOptions)
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    setIsLoaded(true);
+    setIsLoading(false);
+    if (onLoad) {
+      onLoad(e);
+    }
+  };
 
-    return <img ref={ref} {...imgProps} src={src} />
-  }
-)
-WixImage.displayName = 'WixImage'
+  const imageSrc = hasError ? FALLBACK_IMAGE_URL : src;
+  const shouldLazyLoad = lazy && !isLoaded;
 
-export const Image = forwardRef<HTMLImageElement, ImageProps>(({ src, ...props }, ref) => {
-  const [imgSrc, setImgSrc] = useState<string | undefined>(src)
+  // Container styles
+  const containerStyles: CSSProperties = {
+    position: 'relative',
+    display: 'block',
+    overflow: 'hidden',
+    width: '100%',
+    maxWidth: '100%',
+    ...(aspectRatio && { aspectRatio }),
+    ...style,
+  };
 
-  useEffect(() => {
-    // If src prop changes, update the imgSrc state
-    setImgSrc((prev) => {
-      if (prev !== src) {
-        return src
-      }
-      return prev
-    })
-  }, [src])
+  // Image styles
+  const imageStyles: CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover' as const,
+    transition: 'opacity 0.3s ease',
+    opacity: isLoaded ? 1 : 0,
+  };
 
-  if (!src) {
-    return <div data-empty-image ref={ref} {...props} />
-  }
+  return (
+    <div style={containerStyles}>
+      {/* Skeleton loading */}
+      {isLoading && (
+        <div 
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+            backgroundSize: '200px 100%',
+            animation: 'skeleton-loading 1.5s infinite',
+          }}
+        />
+      )}
 
-  const imageProps = { ...props, onError: () => setImgSrc(FALLBACK_IMAGE_URL) }
-  const imageData = getImageData(imgSrc, imageProps)
+      {/* Placeholder */}
+      {placeholder && !isLoaded && !hasError && (
+        <img
+          src={placeholder}
+          alt=""
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            filter: 'blur(20px)',
+            transform: 'scale(1.1)',
+            transition: 'opacity 0.3s ease',
+            opacity: isLoaded ? 0 : 1,
+          }}
+          aria-hidden="true"
+        />
+      )}
 
-  if (!imageData) {
-    return <img data-error-image={imgSrc === FALLBACK_IMAGE_URL} ref={ref} src={imgSrc} {...imageProps} />
-  }
+      {/* Main image */}
+      <img
+        ref={ref}
+        src={imageSrc}
+        alt={alt}
+        className={className}
+        style={imageStyles}
+        loading={shouldLazyLoad ? 'lazy' : 'eager'}
+        decoding="async"
+        onError={handleError}
+        onLoad={handleLoad}
+        {...props}
+      />
 
-  return <WixImage ref={ref} data={imageData} {...imageProps} />
-})
-Image.displayName = 'Image'
+      {/* Fallback */}
+      {hasError && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
+          color: '#666',
+          padding: '1rem',
+          textAlign: 'center',
+        }}>
+          <svg
+            style={{ width: '48px', height: '48px', marginBottom: '0.5rem', color: '#999' }}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          </svg>
+          <span style={{ fontSize: '0.875rem', lineHeight: '1.25rem' }}>
+            Image not available
+          </span>
+        </div>
+      )}
+
+      {/* Inline styles */}
+      <style>{`
+        @keyframes skeleton-loading {
+          0% { background-position: -200px 0; }
+          100% { background-position: calc(200px + 100%) 0; }
+        }
+      `}</style>
+    </div>
+  );
+});
+
+Image.displayName = 'Image';
