@@ -2,10 +2,31 @@ import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
 import { ArrowRight, Shield, Zap, Users, Award, CheckCircle2, ArrowUpRight } from 'lucide-react';
-import Header from '../Header';
-import Footer from '../Footer';
 
-// Mock data
+import Footer from '../layout/Footer';
+import Header from '../layout/Header';
+
+// Light Green Theme CSS Variables
+const lightGreenTheme = `
+  :root {
+    --primary: #4CAF50;
+    --primary-light: #81C784;
+    --primary-dark: #388E3C;
+    --primary-bg: #E8F5E9;
+    --primary-bg-light: #F1F8E9;
+    --accent: #8BC34A;
+    --light-gray: #F5F5F5;
+    --background: #FFFFFF;
+    --foreground: #212121;
+    --secondary: #757575;
+    --soft-gold: #9CCC65;
+  }
+  
+  .selection\\:bg-primary\\/30::selection {
+    background-color: rgba(76, 175, 80, 0.3);
+  }
+`;
+
 const SERVICES_DATA = [
   {
     _id: '1',
@@ -81,8 +102,18 @@ const CERTIFICATIONS_DATA = [
   { _id: '4', certificationName: 'SOC 2 Type II', issuingOrganization: 'AICPA', certificationImage: 'https://via.placeholder.com/100x100?text=SOC2' }
 ];
 
+const TECH_VIDEOS = [
+  'https://videos.pexels.com/video-files/3141211/3141211-uhd_2560_1440_25fps.mp4',
+];
+
 // Utility Components
-const Reveal = ({ children, className = '', delay = 0 }: any) => {
+interface RevealProps {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}
+
+const Reveal = ({ children, className = '', delay = 0 }: RevealProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
 
@@ -99,7 +130,13 @@ const Reveal = ({ children, className = '', delay = 0 }: any) => {
   );
 };
 
-const ParallaxImage: any = ({ src, alt, className = '' }: any) => {
+interface ParallaxImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+}
+
+const ParallaxImage = ({ src, alt, className = '' }: ParallaxImageProps) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -116,7 +153,12 @@ const ParallaxImage: any = ({ src, alt, className = '' }: any) => {
   );
 };
 
-const StickySection = ({ title, children }: any) => {
+interface StickySectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+const StickySection = ({ title, children }: StickySectionProps) => {
   return (
     <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 py-24 border-t border-light-gray/50">
       <div className="lg:w-1/3">
@@ -124,7 +166,7 @@ const StickySection = ({ title, children }: any) => {
           <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             {title}
           </h2>
-          <div className="h-1 w-24 bg-soft-gold mb-8" />
+          <div className="h-1 w-24 bg-primary mb-8" />
         </div>
       </div>
       <div className="lg:w-2/3">
@@ -139,6 +181,7 @@ export default function HomePage() {
   const [clientLogos, setClientLogos] = useState<any[]>([]);
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [certifications, setCertifications] = useState<any[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
 
   useEffect(() => {
     // Load inline data
@@ -146,6 +189,10 @@ export default function HomePage() {
     setClientLogos(CLIENT_LOGOS_DATA);
     setTestimonials(TESTIMONIALS_DATA);
     setCertifications(CERTIFICATIONS_DATA);
+
+    // Select random video
+    const randomIndex = Math.floor(Math.random() * TECH_VIDEOS.length);
+    setVideoUrl(TECH_VIDEOS[randomIndex]);
   }, []);
 
   const { scrollYProgress } = useScroll();
@@ -156,59 +203,67 @@ export default function HomePage() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-soft-gold/30 selection:text-foreground overflow-clip">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-foreground overflow-clip">
+      {/* Light Green Theme CSS */}
+      <style>{lightGreenTheme}</style>
+
       {/* Scroll Progress Indicator */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-soft-gold origin-left z-50"
+        className="fixed top-0 left-0 right-0 h-1 bg-primary origin-left z-50"
         style={{ scaleX }}
       />
 
+      {/* Header with consistent padding */}
       <div className="mx-auto px-6 md:px-8 lg:px-12">
         <Header />
+      </div>
 
       <main>
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
           {/* Video Background */}
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover z-0"
-            aria-hidden="true"
-          >
-            <source src="https://static.wixstatic.com/media/12d367_71ebdd7141d041e4be3d91d80d4578dd~mv2.mp4" type="video/mp4" />
-          </video>
+          {videoUrl && (
+            <video
+              key={videoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover z-0"
+              aria-hidden="true"
+            >
+              <source src={videoUrl} type="video/mp4" />
+            </video>
+          )}
 
-          {/* Video Overlay */}
-          <div className="absolute inset-0 bg-foreground/40 z-[1]" />
+          {/* Video Overlay - Gradient for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-b from-foreground/60 via-foreground/50 to-foreground/70 z-[1]" />
 
           {/* Abstract Background Elements */}
-          <div className="absolute inset-0 z-0">
-            <div className="absolute top-0 right-0 w-[60vw] h-[80vh] bg-light-gray/30 rounded-bl-[10rem] opacity-50" />
-            <div className="absolute bottom-0 left-0 w-[40vw] h-[60vh] bg-light-gray/20 rounded-tr-[8rem] opacity-30" />
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute inset-0 z-[2]">
+            <div className="absolute top-0 right-0 w-[60vw] h-[80vh] bg-primary/5 rounded-bl-[10rem] opacity-50" />
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[60vh] bg-primary/10 rounded-tr-[8rem] opacity-30" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="container max-w-[120rem] mx-auto px-6 relative z-10 grid lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-7">
+          <div className="container max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12 relative z-10 grid lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7 ">
               <Reveal>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-light-gray mb-8 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-soft-gold animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm border border-white/20 mb-8 shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                   <span className="font-paragraph text-sm font-medium text-secondary tracking-wide uppercase">Next-Gen Enterprise IT</span>
                 </div>
               </Reveal>
-              
+
               <Reveal delay={0.1}>
-                <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-8">
+                <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-8 drop-shadow-2xl">
                   Innovate <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground to-secondary">With Confidence</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary-light to-white">With Confidence</span>
                 </h1>
               </Reveal>
 
               <Reveal delay={0.2}>
-                <p className="font-paragraph font-[500] text-base md:text-lg text-secondary max-w-2xl leading-relaxed mb-12 border-l-2 border-soft-gold pl-6">
+                <p className="font-paragraph font-[500] text-base md:text-lg text-white/95 max-w-2xl leading-relaxed mb-12 border-l-2 border-primary pl-6 drop-shadow-lg">
                   We architect the digital backbone of modern enterprises. Precision engineering meets visionary strategy to transform your business infrastructure.
                 </p>
               </Reveal>
@@ -217,7 +272,7 @@ export default function HomePage() {
                 <div className="flex flex-wrap gap-6">
                   <Link
                     to="/services"
-                    className="group relative px-8 py-4 bg-foreground text-background overflow-hidden rounded-none transition-all hover:bg-primary shadow-lg shadow-foreground/20 hover:shadow-lg hover:shadow-primary/30"
+                    className="group relative px-8 py-4 bg-white text-foreground overflow-hidden transition-all hover:bg-primary hover:text-white shadow-xl hover:shadow-2xl hover:shadow-primary/30"
                   >
                     <span className="relative z-10 font-paragraph font-medium flex items-center gap-3">
                       Explore Solutions <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -225,41 +280,12 @@ export default function HomePage() {
                   </Link>
                   <Link
                     to="/contact"
-                    className="group relative px-8 py-4 bg-transparent border border-foreground text-foreground hover:bg-foreground/5 transition-all duration-300 shadow-sm shadow-foreground/10 hover:shadow-md hover:shadow-foreground/20"
+                    className="group relative px-8 py-4 bg-transparent border-2 border-white text-white hover:bg-white hover:text-foreground transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm"
                   >
                     <span className="font-paragraph font-medium">Start a Conversation</span>
                   </Link>
                 </div>
               </Reveal>
-            </div>
-
-            <div className="lg:col-span-5 relative hidden lg:block h-[80vh]">
-               <div className="absolute inset-0 bg-gradient-to-br from-light-gray/50 to-transparent rounded-t-[10rem] overflow-hidden">
-                  <ParallaxImage 
-                    src="https://static.wixstatic.com/media/34c8fd_3dbe2858781442409d5c6a9d9d997b8b~mv2.png" 
-                    alt="Abstract architectural representation" 
-                    className="w-full h-full"
-                  />
-               </div>
-               <motion.div 
-                 initial={{ y: 50, opacity: 0 }}
-                 animate={{ y: 0, opacity: 1 }}
-                 transition={{ delay: 0.8, duration: 0.8 }}
-                 className="absolute bottom-12 -left-12 bg-white p-8 shadow-2xl max-w-xs border-l-4 border-primary"
-               >
-                 <div className="flex items-center gap-4 mb-4">
-                   <div className="p-3 bg-primary/10 rounded-full text-primary">
-                     <Shield size={24} />
-                   </div>
-                   <div>
-                     <p className="font-heading text-lg font-bold">99.99%</p>
-                     <p className="font-paragraph text-xs text-secondary uppercase tracking-wider">Uptime Guaranteed</p>
-                   </div>
-                 </div>
-                 <p className="font-paragraph text-sm text-secondary">
-                   Enterprise-grade reliability for mission-critical operations.
-                 </p>
-               </motion.div>
             </div>
           </div>
         </section>
@@ -267,7 +293,7 @@ export default function HomePage() {
         {/* Marquee Logos Section */}
         {clientLogos.length > 0 && (
           <section className="py-16 border-y border-light-gray bg-white overflow-hidden">
-            <div className="max-w-[120rem] mx-auto px-6 mb-8">
+            <div className="max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12 mb-8">
               <p className="font-paragraph text-sm text-secondary uppercase tracking-widest text-center">Trusted by Global Industry Leaders</p>
             </div>
             <div className="relative flex overflow-x-hidden group">
@@ -302,9 +328,9 @@ export default function HomePage() {
         )}
 
         {/* Philosophy Section */}
-        <section className="py-32 px-6 bg-background">
-          <div className="max-w-[120rem] mx-auto">
-            <StickySection title="The TechVision Standard">
+        <section className="py-32 bg-background">
+          <div className="max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12">
+            <StickySection title="The BITSI Standard">
               <div className="grid md:grid-cols-2 gap-x-12 gap-y-16">
                 {[
                   { icon: Shield, title: 'Fortified Security', description: 'Bank-level encryption and proactive threat monitoring protocols protecting your critical data assets 24/7.' },
@@ -320,7 +346,7 @@ export default function HomePage() {
                           <Icon size={28} className="text-foreground group-hover:text-white transition-colors duration-500" />
                         </div>
                         <h3 className="font-heading text-2xl font-semibold text-foreground mb-4 group-hover:translate-x-2 transition-transform duration-300">{item.title}</h3>
-                        <p className="font-paragraph text-secondary leading-relaxed border-l border-light-gray pl-4 group-hover:border-soft-gold transition-colors duration-300">
+                        <p className="font-paragraph text-secondary leading-relaxed border-l border-light-gray pl-4 group-hover:border-primary transition-colors duration-300">
                           {item.description}
                         </p>
                       </div>
@@ -333,8 +359,8 @@ export default function HomePage() {
         </section>
 
         {/* Services Section */}
-        <section className="py-32 px-6 bg-white">
-          <div className="max-w-[120rem] mx-auto">
+        <section className="py-32 bg-white">
+          <div className="max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12">
             <div className="mb-24 max-w-4xl">
               <Reveal>
                 <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-6 tracking-wide">
@@ -353,17 +379,17 @@ export default function HomePage() {
                     <Reveal>
                       <div className="relative aspect-[4/3] overflow-hidden rounded-sm">
                         {service.serviceIcon ? (
-                           <div className="w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-blue-600/5 p-12 flex items-center justify-center border border-light-gray shadow-md">
-                              <img 
-                                src={service.serviceIcon} 
-                                alt={service.serviceName} 
-                                className="w-1/2 h-1/2 object-contain opacity-90"
-                              />
-                           </div>
+                          <div className="w-full h-full bg-gradient-to-br from-primary/5 via-primary-light/5 to-primary/3 p-12 flex items-center justify-center border border-light-gray shadow-md">
+                            <img
+                              src={service.serviceIcon}
+                              alt={service.serviceName}
+                              className="w-1/2 h-1/2 object-contain opacity-90"
+                            />
+                          </div>
                         ) : (
-                          <ParallaxImage 
-                            src="https://static.wixstatic.com/media/34c8fd_c0ce7d1b996342a582be61184ce00711~mv2.png" 
-                            alt={service.serviceName} 
+                          <ParallaxImage
+                            src="https://static.wixstatic.com/media/34c8fd_c0ce7d1b996342a582be61184ce00711~mv2.png"
+                            alt={service.serviceName}
                             className="w-full h-full"
                           />
                         )}
@@ -371,18 +397,18 @@ export default function HomePage() {
                       </div>
                     </Reveal>
                   </div>
-                  
+
                   <div className="lg:w-1/2 w-full">
                     <Reveal delay={0.2}>
                       <div className="flex items-center gap-4 mb-6">
-                        <span className="font-heading text-2xl font-bold tracking-widest text-soft-gold">0{index + 1}</span>
+                        <span className="font-heading text-2xl font-bold tracking-widest text-primary">0{index + 1}</span>
                         <div className="h-px w-12 bg-light-gray" />
                       </div>
                       <h3 className="font-heading text-3xl font-bold text-foreground mb-6 tracking-wide">{service.serviceName}</h3>
                       <p className="font-paragraph text-base text-secondary mb-8 leading-relaxed">
                         {service.detailedDescription || service.shortDescription}
                       </p>
-                      
+
                       {service.keyBenefits && (
                         <ul className="space-y-4 mb-10">
                           {service.keyBenefits.split('\n').slice(0, 3).map((benefit: any, i: number) => (
@@ -393,7 +419,7 @@ export default function HomePage() {
                           ))}
                         </ul>
                       )}
-0
+
                       <Link
                         to={`/services/${service.slug}`}
                         className="inline-flex items-center gap-2 text-foreground font-medium hover:text-primary transition-colors group"
@@ -406,26 +432,26 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-24 text-center">
-               <Link to="/services" className="inline-block px-12 py-5 border border-foreground text-foreground hover:bg-foreground hover:text-white transition-all duration-300 font-paragraph font-medium tracking-wide shadow-md hover:shadow-lg hover:shadow-foreground/20">
-                  View All Services
-               </Link>
+              <Link to="/services" className="inline-block px-12 py-5 border border-foreground text-foreground hover:bg-foreground hover:text-white transition-all duration-300 font-paragraph font-medium tracking-wide shadow-md hover:shadow-lg hover:shadow-foreground/20">
+                View All Services
+              </Link>
             </div>
           </div>
         </section>
 
         {/* Testimonials */}
         {testimonials.length > 0 && (
-          <section className="py-32 px-6 bg-foreground text-background relative overflow-hidden">
+          <section className="py-32 bg-foreground text-background relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-               <div className="absolute right-0 top-0 w-[50vw] h-[50vw] bg-white rounded-full blur-[150px] translate-x-1/2 -translate-y-1/2" />
+              <div className="absolute right-0 top-0 w-[50vw] h-[50vw] bg-white rounded-full blur-[150px] translate-x-1/2 -translate-y-1/2" />
             </div>
 
-            <div className="max-w-[120rem] mx-auto relative z-10">
+            <div className="max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12 relative z-10">
               <div className="mb-16">
                 <Reveal>
-                  <h2 className="font-heading text-3xl md:text-4xl font-bold mb-6 text-white tracking-wide">Client <br/>Perspectives</h2>
+                  <h2 className="font-heading text-3xl md:text-4xl font-bold mb-6 text-white tracking-wide">Client <br />Perspectives</h2>
                   <p className="font-paragraph font-[500] text-light-gray/70 text-base max-w-2xl">
                     We don't just build technology; we build lasting partnerships that drive measurable success.
                   </p>
@@ -445,7 +471,7 @@ export default function HomePage() {
                               className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
                             />
                           ) : (
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-soft-gold/30 flex items-center justify-center text-xl font-heading font-bold text-white">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-primary-light/30 flex items-center justify-center text-xl font-heading font-bold text-white">
                               {testimonial.clientName?.charAt(0)}
                             </div>
                           )}
@@ -459,13 +485,13 @@ export default function HomePage() {
                           </span>
                         </div>
                       </div>
-                      
-                      <div className="flex gap-1 mb-6 text-soft-gold">
+
+                      <div className="flex gap-1 mb-6 text-primary-light">
                         {Array.from({ length: testimonial.rating || 5 }).map((_, i) => (
                           <span key={i} className="text-lg">★</span>
                         ))}
                       </div>
-                      
+
                       <blockquote className="font-paragraph text-base leading-relaxed text-white/90 italic">
                         "{testimonial.testimonialText}"
                       </blockquote>
@@ -479,13 +505,13 @@ export default function HomePage() {
 
         {/* Certifications */}
         {certifications.length > 0 && (
-          <section className="py-24 px-6 bg-light-gray/20">
-            <div className="max-w-[120rem] mx-auto">
+          <section className="py-24 bg-light-gray/20">
+            <div className="max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12">
               <div className="text-center mb-16">
                 <h2 className="font-heading text-3xl font-bold text-foreground mb-4 tracking-wide">Certified Excellence</h2>
-                <div className="h-px w-16 bg-soft-gold mx-auto" />
+                <div className="h-px w-16 bg-primary mx-auto" />
               </div>
-              
+
               <div className="flex flex-wrap justify-center gap-12 md:gap-24 items-center">
                 {certifications.map((cert) => (
                   <div key={cert._id} className="text-center group">
@@ -508,15 +534,15 @@ export default function HomePage() {
         )}
 
         {/* CTA Section */}
-        <section className="py-32 px-6 bg-white relative overflow-hidden">
-          <div className="max-w-[120rem] mx-auto relative z-10">
+        <section className="py-32 bg-white relative overflow-hidden">
+          <div className="max-w-[120rem] mx-auto px-6 md:px-8 lg:px-12 relative z-10">
             <div className="bg-background border border-light-gray p-12 md:p-24 relative overflow-hidden shadow-lg">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-soft-gold/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
               <div className="relative z-10 max-w-4xl mx-auto text-center">
                 <Reveal>
                   <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-8 leading-tight tracking-wide">
-                    Ready to Architect <br/> Your Future?
+                    Ready to Architect <br /> Your Future?
                   </h2>
                   <p className="font-paragraph font-[500] text-base text-secondary/80 mb-12 max-w-2xl mx-auto">
                     Let's discuss how our enterprise solutions can drive efficiency, security, and growth for your organization.
@@ -543,7 +569,7 @@ export default function HomePage() {
       </main>
 
       <Footer />
-      
+
       <style>{`
         .animate-marquee {
           animation: marquee 40s linear infinite;
@@ -560,7 +586,6 @@ export default function HomePage() {
           100% { transform: translateX(0%); }
         }
       `}</style>
-      </div>
     </div>
   );
 }

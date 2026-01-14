@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
-import Header from '../Header';
-import Footer from '../Footer';
+
+import Footer from '../layout/Footer';
+import Header from '../layout/Header';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -33,6 +34,14 @@ export default function ContactPage() {
     setIsSubmitting(false);
     setIsSubmitted(true);
 
+ const { scrollYProgress } = useScroll();
+
+const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
     // Reset form after 3 seconds
     setTimeout(() => {
       setFormData({ name: '', email: '', company: '', message: '' });
@@ -42,7 +51,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto px-6 md:px-8 lg:px-12">
+      <div className="mx-auto px-6 md:px-8 lg:px-0">
         <Header />
 
       {/* Hero Section */}
@@ -91,18 +100,18 @@ export default function ContactPage() {
                       Email
                     </h3>
                     <a
-                      href="mailto:info@techvision.com"
+                      href="mailto:info@bitsinetwork.com"
                       className="font-paragraph text-sm text-secondary hover:text-primary transition-colors"
                     >
-                      info@techvision.com
+                      info@bitsinetwork.com
                     </a>
                     <br />
-                    <a
+                    {/* <a
                       href="mailto:sales@techvision.com"
                       className="font-paragraph text-sm text-secondary hover:text-primary transition-colors"
                     >
                       sales@techvision.com
-                    </a>
+                    </a> */}
                   </div>
                 </div>
 
@@ -115,14 +124,14 @@ export default function ContactPage() {
                       Phone
                     </h3>
                     <a
-                      href="tel:+15551234567"
+                      href="tel:+977 9869539234"
                       className="font-paragraph text-sm text-secondary hover:text-primary transition-colors"
                     >
-                      +1 (555) 123-4567
+                      +977 9869539234
                     </a>
                     <br />
                     <span className="font-paragraph text-xs text-secondary">
-                      Monday - Friday, 9:00 AM - 6:00 PM PST
+                      Sunday - Friday, 10:00 AM - 6:00 PM NPT
                     </span>
                   </div>
                 </div>
@@ -136,9 +145,8 @@ export default function ContactPage() {
                       Office
                     </h3>
                     <p className="font-paragraph text-sm text-secondary">
-                      123 Tech Street, Suite 100<br />
-                      San Francisco, CA 94105<br />
-                      United States
+                      Bafal, Kathmandu<br />
+                      Nepal
                     </p>
                   </div>
                 </div>
@@ -150,15 +158,11 @@ export default function ContactPage() {
                 </h3>
                 <div className="space-y-2 font-paragraph text-sm text-secondary">
                   <div className="flex justify-between">
-                    <span>Monday - Friday</span>
-                    <span>9:00 AM - 6:00 PM</span>
+                    <span>Sunday - Friday</span>
+                    <span>10:00 AM - 6:00 PM</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Saturday</span>
-                    <span>10:00 AM - 2:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sunday</span>
                     <span>Closed</span>
                   </div>
                 </div>
@@ -209,7 +213,7 @@ export default function ContactPage() {
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border border-light-gray rounded-lg font-paragraph text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-                        placeholder="John Doe"
+                        placeholder=""
                       />
                     </div>
 
@@ -228,7 +232,7 @@ export default function ContactPage() {
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border border-light-gray rounded-lg font-paragraph text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-                        placeholder="john@company.com"
+                        placeholder="example@bitsinetwork.com"
                       />
                     </div>
 
@@ -299,7 +303,7 @@ export default function ContactPage() {
       </section>
 
       {/* Map Section */}
-      <section className="py-24 px-8 bg-light-gray/30">
+      {/* <section className="py-24 px-8 bg-light-gray/30">
         <div className="max-w-[120rem] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -320,7 +324,7 @@ export default function ContactPage() {
             </div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
       </div>

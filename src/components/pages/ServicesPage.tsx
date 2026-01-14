@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useSpring, useScroll } from 'framer-motion';
 import { X, ArrowRight, CheckCircle } from 'lucide-react';
-import Header from '../Header';
-import Footer from '../Footer';
+
+import Footer from '../layout/Footer';
+import Header from '../layout/Header';
 
 // Inline mock data for services
 const SERVICES_DATA = [
@@ -62,7 +63,26 @@ const SERVICES_DATA = [
     serviceIcon: 'https://cdn-icons-png.flaticon.com/512/2956/2956749.png'
   }
 ];
-
+const lightGreenTheme = `
+  :root {
+    --primary: #4CAF50;
+    --primary-light: #81C784;
+    --primary-dark: #388E3C;
+    --primary-bg: #E8F5E9;
+    --primary-bg-light: #F1F8E9;
+    --accent: #8BC34A;
+    --light-gray: #F5F5F5;
+    --background: #FFFFFF;
+    --foreground: #212121;
+    --secondary: #757575;
+    --soft-gold: #9CCC65;
+  }
+  
+  .selection\\:bg-primary\\/30::selection {
+    background-color: rgba(76, 175, 80, 0.3);
+  }
+`;
+ 
 export default function ServicesPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -85,7 +105,13 @@ export default function ServicesPage() {
     setSelectedService(service);
     navigate(`/services/${service.slug}`);
   };
+ const { scrollYProgress } = useScroll();
 
+const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
   const handleCloseModal = () => {
     setSelectedService(null);
     navigate('/services');
@@ -93,7 +119,14 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto px-6 md:px-8 lg:px-12">
+         <style>{lightGreenTheme}</style>
+      
+            {/* Scroll Progress Indicator */}
+            <motion.div
+              className="fixed top-0 left-0 right-0 h-1 bg-primary origin-left z-50"
+              style={{ scaleX }}
+            />
+      <div className="mx-auto px-6 md:px-8 lg:px-0">
         <Header />
 
         {/* Hero Section */}

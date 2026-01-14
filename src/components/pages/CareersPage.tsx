@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { X, MapPin, Briefcase, Building2, ExternalLink, Heart, TrendingUp, Users, Award } from 'lucide-react';
-import Header from '../Header';
-import Footer from '../Footer';
+import Header from '../layout/Header';
+import Footer from '../layout/Footer';
 
-// Inline mock data for open roles
 const OPEN_ROLES = [
   {
     _id: '1',
@@ -140,6 +139,13 @@ export default function CareersPage() {
     navigate(`/careers/${role._id}`);
   };
 
+ const { scrollYProgress } = useScroll();
+
+const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
   const handleCloseModal = () => {
     setSelectedRole(null);
     navigate('/careers');
@@ -170,7 +176,7 @@ export default function CareersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto px-6 md:px-8 lg:px-12">
+      <div className="mx-auto px-6 md:px-8 lg:px-0">
         <Header />
 
       {/* Hero Section */}
